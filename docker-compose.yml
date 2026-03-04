@@ -1,8 +1,14 @@
 version: '3.8'
 
-# For senior capstone project - Hospital Honeypot. 
-# This file will be ran from the "Brain" instance within AWS. 
-# Follow these steps or containers will crash immediatly: 
+# ==============================================================================
+# HOSPITAL HONEYPOT: THE BRAIN (ELK STACK)
+# This file acts as an "Installation Script" that sets up three distinct 
+# software tools inside the "Brain" server. These tools work together to 
+# capture, sort, and display security data from the hospital.
+# ==============================================================================
+
+# Full Disclosure, Google and Google Gemini were used to aid in the creation of this file
+# FOLLOW THESE STEPS or containers will crash immediatly most likely: 
 # 1. Increase Virtual Memory (Mandatory) Elasticsearch requires higher vm.max_map_count. Run this on host VM, in theory should work (got it from Google)
 # sudo sysctl -w vm.max_map_count=262144 
 # 2. Logstash Pipeline: Need basic config file in ./logstash/pipeline/logstash.conf to tell Logstash to listen for Beats:
@@ -16,9 +22,10 @@ version: '3.8'
 # 3. Isolation Check: Verify that Security Groups allow the "Clinical Zone" assets to hit the Brain on port 5044
 
 
-# services section defines the individual software packages that make up the "Brain" zone
+# Services section defines the individual software packages that make up the "Brain" zone
 services:
-  # Elasticsearch: The Data Store
+  # 1. ELASTICSEARCH: The Digital Filing Cabinet
+  # This service stores all the logs sent from the medical devices.
   elasticsearch:
     # Downloads the official code from Elasticsearch version 8.10.2 (latest I think)
     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
@@ -35,6 +42,8 @@ services:
       memlock:
         soft: -1
         hard: -1
+    # DATA PROTECTION: This "Volume" ensures that if the server restarts, 
+    # the security logs aren't deleted. It's like saving your work to a hard drive.
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:
@@ -42,7 +51,9 @@ services:
     networks:
       - honeypot-net
 
-  # Logstash: The Traffic Processor
+  # 2. LOGSTASH: The Data Translator
+  # This service takes the "raw" data from medical devices and reformats it 
+  # so it's easy for us to read and search later.
   logstash:
     image: docker.elastic.co/logstash/logstash:8.10.2
     container_name: logstash
@@ -60,14 +71,17 @@ services:
     networks:
       - honeypot-net
 
-  # Kibana: The Dashboard Visualization
+  # 3. KIBANA: The Control Dashboard
+  # This is essentially the only part we interact with. It turns the data into 
+  # charts, maps, and lists that we can view in a web browser.  
   kibana:
     image: docker.elastic.co/kibana/kibana:8.10.2
     container_name: kibana
     # Tells Kibana where to find the data. 
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    # Port that will be in theory accessed via the AWS Client VPN to show results 
+    # USER ACCESS: Port 5601 is the "Screen." We access this through our 
+    # secure VPN to see what's happening in the honeypot.    
     ports:
       - 5601:5601 # Accessible via AWS Client VPN
     depends_on:
@@ -75,11 +89,16 @@ services:
     networks:
       - honeypot-net
 
-# Infrastructure 
+# ==========================================
+# INFRASTRUCTURE SETUP
 # Creates a private, internal virtual network just for these 3 containers. It isolates the "Brain" communications from the rest of VPC
+# ==========================================
 networks:
+  # This creates a "Private Hallway" so these three services can talk to 
+  # each other without being exposed to the rest of the network.
   honeypot-net:
     driver: bridge
+    
 # "Persistent Storage" When a container stops data is deletated, by using a volume (es_data), logs will stay saved on the AWS hard drive even if we restart containers 
 volumes:
   es_data:
