@@ -1,0 +1,11 @@
+# Ignore Terraform state (contains sensitive info)
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Ignore Docker data volumes
+es_data/
+
+# Ignore sensitive AWS credentials (if you saved them in a file)
+*.pem
+.aws/
