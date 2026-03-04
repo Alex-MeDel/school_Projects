@@ -1,0 +1,88 @@
+version: '3.8'
+
+# For senior capstone project - Hospital Honeypot. 
+# This file will be ran from the "Brain" instance within AWS. 
+# Follow these steps or containers will crash immediatly: 
+# 1. Increase Virtual Memory (Mandatory) Elasticsearch requires higher vm.max_map_count. Run this on host VM, in theory should work (got it from Google)
+# sudo sysctl -w vm.max_map_count=262144 
+# 2. Logstash Pipeline: Need basic config file in ./logstash/pipeline/logstash.conf to tell Logstash to listen for Beats:
+# Something like this: (according to Gemini)
+# input {
+#  beats { port => 5044 }
+# }
+# output {
+#  elasticsearch { hosts => ["elasticsearch:9200"] }
+# }
+# 3. Isolation Check: Verify that Security Groups allow the "Clinical Zone" assets to hit the Brain on port 5044
+
+
+# services section defines the individual software packages that make up the "Brain" zone
+services:
+  # Elasticsearch: The Data Store
+  elasticsearch:
+    # Downloads the official code from Elasticsearch version 8.10.2 (latest I think)
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      # This discovery section tells Elasticsearch that its working alone and not in a massive cluster of servers
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      # Limits active memory to 2GB, without this, Elasticsearch might try to grab all 8GB of the RAM crashing the host VM
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g" # Optimized for t3.large (8GB RAM) - Gemini Recommendation
+      - xpack.security.enabled=false # Disabled for initial dev; enable for final TLS
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - honeypot-net
+
+  # Logstash: The Traffic Processor
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.2
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    # This opens a sort of door into the container. It maps port 5044 on the AWS instance to port 5044 inside the container. 
+    # This is where Filebeat/Winlogbeat will send TLS-encrypted logs
+    ports:
+      - 5044:5044 # Port for incoming Beats (Winlogbeat/Filebeat)
+    environment:
+      - LS_JAVA_OPTS=-Xms1g -Xmx1g
+    # This depends_on just ensures that Logstash doesnt start until Elasticsearch is ready to receive data
+    depends_on:
+      - elasticsearch
+    networks:
+      - honeypot-net
+
+  # Kibana: The Dashboard Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.2
+    container_name: kibana
+    # Tells Kibana where to find the data. 
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    # Port that will be in theory accessed via the AWS Client VPN to show results 
+    ports:
+      - 5601:5601 # Accessible via AWS Client VPN
+    depends_on:
+      - elasticsearch
+    networks:
+      - honeypot-net
+
+# Infrastructure 
+# Creates a private, internal virtual network just for these 3 containers. It isolates the "Brain" communications from the rest of VPC
+networks:
+  honeypot-net:
+    driver: bridge
+# "Persistent Storage" When a container stops data is deletated, by using a volume (es_data), logs will stay saved on the AWS hard drive even if we restart containers 
+volumes:
+  es_data:
+    driver: local
+
+# Redeploy the entire thing with "docker-compose up -d"
