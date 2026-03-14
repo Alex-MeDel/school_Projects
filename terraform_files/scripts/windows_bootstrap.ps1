@@ -1,6 +1,7 @@
 # ==========================================
 # WINDOWS BOOTSTRAP: Internal App Servers
 # ==========================================
+# Note: Google Gemini was used in the creation of this PowerShell script given my lack of knowledge in the subject, all AI generated code was checked and throughly tested
 
 # 1. Start Logging 
 # You can RDP into the server later and read this file to verify the setup
@@ -39,5 +40,5 @@ Write-Output "Enabling Strict Windows Defender Policies..."
 Set-MpPreference -EnableControlledFolderAccess Enabled
 Set-MpPreference -PUAProtection Enabled
 
-Write-Output "Windows Bootstrap Complete!"
+Write-Output "===== Windows Bootstrap Complete! ====="
 Stop-Transcript

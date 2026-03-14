@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # ==========================================
 # UBUNTU BOOTSTRAP: Management & VPN Server
 # ==========================================
@@ -14,6 +15,7 @@ apt-get install -y awscli chrony openvpn easy-rsa
 
 # 3. NTP Configuration (Amazon Time Sync Service)
 # Fulfills the "NTP (trusted servers)" requirement
+# Google Gemini aided in the creation of the Chrony configuration
 echo "Configuring Amazon Time Sync..."
 echo "server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4" >> /etc/chrony/chrony.conf
 systemctl restart chrony
@@ -37,6 +39,7 @@ cd /etc/openvpn/easy-rsa
 # Initialize the Public Key Infrastructure (PKI)
 ./easyrsa init-pki
 
+# Google Gemini Aided with these EasyRSA configurations, mostly to explain, given no previous use
 # Build the Certificate Authority (Batch mode prevents interactive prompts)
 EASYRSA_BATCH=1 ./easyrsa build-ca nopass
 
@@ -88,4 +91,4 @@ sysctl -p
 echo "Verifying access to Terraform S3 Bootstrap Bucket: ${bucket_name}"
 aws s3 ls s3://${bucket_name}/ >> /var/log/bootstrap_s3_check.txt
 
-echo "Ubuntu Bootstrap Complete!"
+echo "===== Ubuntu Bootstrap Complete! ====="

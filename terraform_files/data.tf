@@ -6,7 +6,7 @@
 # ==========================================
 
 # This is to get rid of hardcoded AMI IDs, this just retreives the latests AMI IDs from each OS
-
+# Google Gemini AI was used to look up the proper filters and AWS account IDs for this section
 # ------------------------------------------
 # UBUNTU LINUX AMI: Ubuntu 22.04 LTS (Jammy Jellyfish)
 # ------------------------------------------
