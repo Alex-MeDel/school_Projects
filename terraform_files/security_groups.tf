@@ -1,0 +1,134 @@
+# ==========================================
+# SECURITY GROUPS: Network Isolation & Access Control
+# These section will act as stateful firewalls, controlling who can talk to whom
+# ==========================================
+
+# ------------------------------------------
+# 1. Public "Management" Zone
+# ------------------------------------------
+resource "aws_security_group" "management_sg" {
+    name   = "management-sg"
+    description = "Security rules for Management Zone"
+    vpc_id = aws_vpc.main_vpc.id
+
+    # INGRESS: Who to allow to connect via SSH
+    ingress {
+        from_port   = 22 # 22 is standard SSH port
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"] # <-- Bootstrapping code (Change to one of other options after boostrapping phase)
+    #    cidr_blocks = ["10.0.0.0/16"] # Via Client VPN only
+    #    cidr_blocks = ["IP_ADDRESS/32"] # Via IP whitelist only
+    }
+
+    # INGRESS: UDP 1194 (OpenVPN)
+    ingress {
+        from_port   = 1194
+        to_port     = 1194
+        protocol    = "udp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }    
+
+    # EGRESS: Talking to open internet essentially
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"] # BOOTSTRAPPING - Comment out when finished boostrapping
+    #    cidr_blocks = ["127.0.0.1/32"] # Block all outbound, can uncomment to block internet
+    }
+
+    # EGRESS: DB traffic for postgres
+    egress {
+        from_port   = 5432
+        to_port     = 5432
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }    
+}
+
+# ------------------------------------------
+# 2. Private "Internal" Zone
+# ------------------------------------------
+resource "aws_security_group" "internal_sg" {
+    name   = "internal-sg"
+    description = "Security rules for the internal zone"
+    vpc_id = aws_vpc.main_vpc.id
+
+    # TEMPORARY DEBUGGING: RDP ingress rule for debugging
+    ingress {
+        from_port   = 3389
+        to_port     = 3389
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    # TEMPORARY DEBUGGING: SSH ingress rule for Internal SG - DELETE OR COMMENT LATER!!!
+    ingress {
+        from_port   = 22 
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    # DB traffic rule, for postgres - only from management_sg <- I think
+    ingress {
+        from_port   = 5432
+        to_port     = 5432
+        protocol    = "tcp"
+        cidr_blocks = ["10.0.2.0/24"]
+    }
+
+    # EGRESS: Allow DNS resolution via Route 53 (UDP port 53)
+    # Required for internal hostnames to resolve post-lockdown
+    egress {
+        from_port   = 53
+        to_port     = 53
+        protocol    = "udp"
+        cidr_blocks = ["10.0.0.0/16"] # VPC-wide, I think
+    }
+
+
+    # EGRESS: lockdown - Block all outbound internet traffic
+    # Necessary to be open during boostrapping phase for downloads
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"] # Bootstrapping code 
+    #    cidr_blocks = ["127.0.0.1/32"] # No Internet 
+    }
+}
+
+# ==========================================
+# DNS FIREWALL: Block Unauthorized Domains
+# ==========================================
+
+# 1. Define the list of unauthorized domains
+resource "aws_route53_resolver_firewall_domain_list" "bad_domains" {
+  name    = "unauthorized-domains-list"
+  domains = ["malware.local", "evil.local", "veryevil.local"]
+}
+
+# 2. Create the Rule Group container
+resource "aws_route53_resolver_firewall_rule_group" "block_bad_domains_group" {
+  name = "block-unauthorized-domains-group"
+}
+
+# 3. Create the specific Rule: If a domain is on the list, block it
+resource "aws_route53_resolver_firewall_rule" "block_rule" {
+  name                    = "block-malware-rule"
+  action                  = "BLOCK"
+  block_response          = "NODATA" # Silently drops the DNS request
+  firewall_domain_list_id = aws_route53_resolver_firewall_domain_list.bad_domains.id
+  firewall_rule_group_id  = aws_route53_resolver_firewall_rule_group.block_bad_domains_group.id
+  priority                = 100
+}
+
+# 4. Attach the Firewall Rule Group to the VPC
+resource "aws_route53_resolver_firewall_rule_group_association" "vpc_association" {
+  name                   = "vpc-dns-firewall-assoc"
+  firewall_rule_group_id = aws_route53_resolver_firewall_rule_group.block_bad_domains_group.id
+  priority               = 101
+  vpc_id                 = aws_vpc.main_vpc.id
+}
