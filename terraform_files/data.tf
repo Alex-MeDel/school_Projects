@@ -31,7 +31,7 @@ data "aws_ami" "ubuntu" {
 # ------------------------------------------
 data "aws_ami" "RHEL" {
   most_recent = true
-  owners      = ["301981759614"] # Red Hat's official AWS account ID
+  owners      = ["309956199498"] # Red Hat's official AWS account ID
 
   filter {
     name   = "name"

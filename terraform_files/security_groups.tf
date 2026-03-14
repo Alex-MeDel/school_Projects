@@ -100,35 +100,3 @@ resource "aws_security_group" "internal_sg" {
     }
 }
 
-# ==========================================
-# DNS FIREWALL: Block Unauthorized Domains
-# ==========================================
-
-# 1. Define the list of unauthorized domains
-resource "aws_route53_resolver_firewall_domain_list" "bad_domains" {
-  name    = "unauthorized-domains-list"
-  domains = ["malware.local", "evil.local", "veryevil.local"]
-}
-
-# 2. Create the Rule Group container
-resource "aws_route53_resolver_firewall_rule_group" "block_bad_domains_group" {
-  name = "block-unauthorized-domains-group"
-}
-
-# 3. Create the specific Rule: If a domain is on the list, block it
-resource "aws_route53_resolver_firewall_rule" "block_rule" {
-  name                    = "block-malware-rule"
-  action                  = "BLOCK"
-  block_response          = "NODATA" # Silently drops the DNS request
-  firewall_domain_list_id = aws_route53_resolver_firewall_domain_list.bad_domains.id
-  firewall_rule_group_id  = aws_route53_resolver_firewall_rule_group.block_bad_domains_group.id
-  priority                = 100
-}
-
-# 4. Attach the Firewall Rule Group to the VPC
-resource "aws_route53_resolver_firewall_rule_group_association" "vpc_association" {
-  name                   = "vpc-dns-firewall-assoc"
-  firewall_rule_group_id = aws_route53_resolver_firewall_rule_group.block_bad_domains_group.id
-  priority               = 101
-  vpc_id                 = aws_vpc.main_vpc.id
-}
