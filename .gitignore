@@ -1,11 +1,101 @@
-# Ignore Terraform state (contains sensitive info)
+# ==========================================
+# TERRAFORM
+# ==========================================
+
+# Local state files - never commit these, contain sensitive infrastructure data
+terraform.tfstate
+terraform.tfstate.backup
+
+# tfstate directory (for workspaces)
 .terraform/
-*.tfstate
-*.tfstate.backup
 
-# Ignore Docker data volumes
-es_data/
+# Lock file for provider versions - optional to commit, excluded here for flexibility
+# .terraform.lock.hcl
 
-# Ignore sensitive AWS credentials (if you saved them in a file)
+# Crash log output from Terraform panics
+crash.log
+crash.*.log
+
+# Variable files that may contain secrets (API keys, passwords, IPs)
+*.tfvars
+*.tfvars.json
+
+# Override files (local developer overrides, not for version control)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Plan output files (can contain sensitive data in plaintext)
+*.tfplan
+*.plan
+
+
+# ==========================================
+# SSH KEYS
+# ==========================================
+
+# Never commit private or public keys
 *.pem
+*.pub
+*.key
+id_rsa
+id_rsa.*
+epic_key
+epic_key.*
+honeypot_key
+honeypot_key.*
+
+
+# ==========================================
+# AWS CREDENTIALS
+# ==========================================
+
+# AWS CLI credential files if accidentally placed in project directory
 .aws/
+credentials
+aws_credentials.txt
+
+
+# ==========================================
+# BOOTSTRAP SCRIPTS SENSITIVE OUTPUT
+# ==========================================
+
+# Any local copies of rendered bootstrap scripts (may contain injected secrets)
+*.rendered
+scripts/*.rendered
+
+
+# ==========================================
+# OS & EDITOR JUNK
+# ==========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains (IntelliJ, PyCharm, etc.)
+.idea/
+
+# Vim swap files
+*.swp
+*.swo
+
+# ==========================================
+# PYTHON (validationScript.py)
+# ==========================================
+
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
