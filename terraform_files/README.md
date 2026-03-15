@@ -168,7 +168,7 @@ The following items are intentionally left open during the bootstrap phase and *
 
 ## 🤖 AI Disclosure & Methodology Statement
 
-This project used Google Gemini and Claude AI as research and brainstorming assistants. AI assistance was used for HCL syntax, PowerShell compatibility for Windows Server environments, S3 bootstrap architecture, and initial ELK containerization structure.
+This project used Google Gemini and Claude AI as research and brainstorming assistants. AI assistance was used for HCL syntax, PowerShell compatibility for Windows Server environments, and, S3 bootstrap architecture.
 
 All AI-generated code was manually reviewed, cross-referenced with official AWS and HashiCorp documentation, and tested against a live deployment. All conceptual networking design, and security zone architecture are original work. Code sections heavily influenced by AI are marked with inline comments identifying the model used. Claude AI was used in the creation of this README.md and reviewed for errors. Google Gemini AI was used for debugging after the initial deployment.
 
