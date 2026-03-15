@@ -31,8 +31,7 @@
 # AI Disclosure & Methodology Statement:
 # This project utilized Google Gemini and Claude AI as research and brainstorming
 # assistants. Specifically, AI was used to assist with HCL (HashiCorp Configuration
-# Language) syntax, PowerShell compatibility for legacy Windows environments, and
-# the initial structuring of the ELK containerization.
+# Language) syntax, and PowerShell compatibility for Windows environments.
 # To ensure academic integrity and technical accuracy, all AI-generated code
 # snippets were manually reviewed, cross-referenced with official AWS and HashiCorp
 # documentation, and locally tested for functionality. All conceptual networking
@@ -41,6 +40,9 @@
 # also used for the purpose of debugging during test deployments, and for code
 # and comment polishing after the successful deployment.
 # ==========================================
+
+# Some of this code was recycled from other terraform projects, if you find something referencing a "Honeypot" its likely that
+
 
 provider "aws" {
     region = var.aws_region
