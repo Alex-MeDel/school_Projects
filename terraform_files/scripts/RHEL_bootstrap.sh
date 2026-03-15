@@ -48,7 +48,7 @@ systemctl start postgresql
 systemctl enable postgresql
 
 # 6. Create a default Database and Admin User
-# This proves to your professor that the database is fully operational
+# This proves that the database is fully operational
 echo "Creating dummy database and user..."
 sudo -u postgres psql -c "CREATE USER dbadmin WITH PASSWORD 'AcademyPassw0rd!';"
 sudo -u postgres psql -c "CREATE DATABASE appdb OWNER dbadmin;"

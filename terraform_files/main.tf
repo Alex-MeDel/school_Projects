@@ -36,7 +36,7 @@
 # To ensure academic integrity and technical accuracy, all AI-generated code
 # snippets were manually reviewed, cross-referenced with official AWS and HashiCorp
 # documentation, and locally tested for functionality. All conceptual networking
-# designs and the honeypot strategy are original work. Specific code sections heavily
+# designs and overall strategy are original work. Specific code sections heavily
 # influenced by AI are marked with internal comments citing the model used. AI was 
 # also used for the purpose of debugging during test deployments, and for code
 # and comment polishing after the successful deployment.
