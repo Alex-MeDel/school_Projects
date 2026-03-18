@@ -57,6 +57,7 @@ EASYRSA_BATCH=1 ./easyrsa sign-req client client1
 # Move generated keys and certs to the OpenVPN directory
 cp pki/ca.crt pki/private/server.key pki/issued/server.crt pki/dh.pem /etc/openvpn/
 
+# Google Gemini AI helped with polishing and debugging this section of the code, OpenVPN config
 # 6. OpenVPN Server Configuration
 echo "Writing OpenVPN server.conf..."
 cat <<EOF > /etc/openvpn/server.conf
