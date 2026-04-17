@@ -79,6 +79,14 @@ resource "aws_security_group" "internal_sg" {
         cidr_blocks = ["10.0.2.0/24"]
     }
 
+    # Web traffic rule, for IIS - only from management_sg
+    ingress {
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = ["10.0.2.0/24"] # Allow only the Management Subnet
+    }
+
     # EGRESS: Allow DNS resolution via Route 53 (UDP port 53)
     # Required for internal hostnames to resolve post-lockdown
     egress {
