@@ -92,4 +92,22 @@ sysctl -p
 echo "Verifying access to Terraform S3 Bootstrap Bucket: ${bucket_name}"
 aws s3 ls s3://${bucket_name}/ >> /var/log/bootstrap_s3_check.txt
 
+# 9. Third-Party Vendor Access Provisioning
+# Fulfills "Allows for third party agreements" requirement
+echo "Provisioning scoped third-party access (Network Auditor)..."
+
+# Create the user with a home directory and bash shell
+useradd -m -s /bin/bash vendor_audit
+
+# Setup the SSH directory structure
+mkdir -p /home/vendor_audit/.ssh
+
+# Inject a dummy public key to prove the concept works via key-pair, not passwords
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQC_DUMMY_KEY_FOR_VENDOR_AUDIT_ vendor_audit" > /home/vendor_audit/.ssh/authorized_keys
+
+# Lock down permissions (Critical for SSH to function)
+chmod 700 /home/vendor_audit/.ssh
+chmod 600 /home/vendor_audit/.ssh/authorized_keys
+chown -R vendor_audit:vendor_audit /home/vendor_audit/.ssh
+
 echo "===== Ubuntu Bootstrap Complete! ====="
