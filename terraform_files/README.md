@@ -43,7 +43,7 @@ A fully automated, IaaS cloud environment provisioned on AWS using Terraform. De
 - **NTP** — All instances configured to use the Amazon Time Sync Service (`169.254.169.123`)
 - **PostgreSQL database** — Auto-initialized on RHEL with a default database and admin user
 - **IIS web server** — Installed on both Windows instances with a custom identity page
-- **DNS firewall** — Route 53 Resolver Firewall blocks a configurable list of unauthorized domains
+- **DNS lockdown** — `/etc/hosts` loopback redirect blocks unauthorized domains on all instances at the OS level (Route 53 Resolver Firewall is unavailable in AWS Academy)
 - **S3 bootstrap pattern** — Scripts stored in a randomized S3 bucket and pulled down at boot, bypassing `user_data` size limits
 - **Dynamic AMI lookup** — No hardcoded AMI IDs; always pulls the latest official images from Canonical, Red Hat, and Amazon
 
@@ -133,7 +133,7 @@ The following items are intentionally left open during the bootstrap phase and *
 
 | Requirement | Implementation |
 |---|---|
-| Locks down unauthorized domains | Route 53 Resolver Firewall + `/etc/hosts` fallback on all instances |
+| Locks down unauthorized domains | `/etc/hosts` loopback redirect on all instances (Ubuntu, RHEL, Windows 2019, Windows 2022). Route 53 Resolver Firewall was evaluated as the primary layer but is unavailable in AWS Academy Learner Lab environments. |
 | Locks down unauthorized IP ranges | Security group ingress/egress rules |
 | Locks down unauthorized port ranges | Security group rules per subnet zone |
 | VPN for confidentiality | OpenVPN with full PKI auto-generated on Ubuntu server |
